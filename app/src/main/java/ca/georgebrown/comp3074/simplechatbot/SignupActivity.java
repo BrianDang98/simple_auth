@@ -10,34 +10,25 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.database.FirebaseDatabase;
 
 import static com.facebook.FacebookSdk.getApplicationContext;
 
 public class SignupActivity extends AppCompatActivity {
 
+    private TextView btnSignIn;
     private EditText inputEmail, inputPassword, inputFirstName, inputLastName;
-    private Button btnSignUp, btnSignIn;
+    private Button btnSignUp;
     private ProgressBar progressBar;
     private FirebaseAuth auth;
-
-    //*** Handling the already login user ***//
-    /*
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        if(auth.getCurrentUser() != null){
-
-        }
-    }
-    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,30 +58,22 @@ public class SignupActivity extends AppCompatActivity {
                 final String email = inputEmail.getText().toString().trim();
                 String password = inputPassword.getText().toString().trim();
 
-                /*
-                if(TextUtils.isEmpty(firstName)){
-                    Toast.makeText(getApplicationContext(), "Enter your First Name!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if(TextUtils.isEmpty(lastName)){
-                    Toast.makeText(getApplicationContext(), "Enter your Last Name!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                */
 
                 if (TextUtils.isEmpty(email)) {
-                    Toast.makeText(getApplicationContext(), "Enter email address!", Toast.LENGTH_SHORT).show();
+                    inputEmail.setError("Enter email address!");
+                    inputEmail.requestFocus();
                     return;
                 }
 
                 if (TextUtils.isEmpty(password)) {
-                    Toast.makeText(getApplicationContext(), "Enter password!", Toast.LENGTH_SHORT).show();
+                    inputPassword.setError("Enter password!");
+                    inputPassword.requestFocus();
                     return;
                 }
 
                 if (password.length() < 6) {
-                    Toast.makeText(getApplicationContext(), "Password too short, enter minimum 6 characters!", Toast.LENGTH_SHORT).show();
+                    inputPassword.setError("Password too short, enter minimum 6 characters!");
+                    inputPassword.requestFocus();
                     return;
                 }
 
@@ -98,19 +81,21 @@ public class SignupActivity extends AppCompatActivity {
                         .addOnCompleteListener(SignupActivity.this, new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
+                                progressBar.setVisibility(View.GONE);
                                 if (!task.isSuccessful()) {
-                                    Toast.makeText(SignupActivity.this, "Authentication failed !", Toast.LENGTH_LONG).show();
-                                } else {
-
-                                    /*User user = new User(firstName, lastName, email);
-
-                                    FirebaseDatabase.getInstance().getReference("Users")
-                                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                            .setValue(user);*/
-                                    Toast.makeText(SignupActivity.this, "Authentication succeeded !", Toast.LENGTH_LONG).show();
+                                    if(task.getException() instanceof FirebaseAuthUserCollisionException){
+                                        Toast.makeText(getApplicationContext(), "You are already registered", Toast.LENGTH_SHORT).show();
+                                    }
+                                    else{
+                                        Toast.makeText(getApplicationContext(), task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                                else {
+                                    Toast.makeText(SignupActivity.this, "Authentication succeeded !", Toast.LENGTH_SHORT).show();
                                     startActivity(new Intent(SignupActivity.this, MainActivity.class));
                                     finish();
                                 }
+
                             }
                         });
             }
@@ -121,7 +106,7 @@ public class SignupActivity extends AppCompatActivity {
         btnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(SignupActivity.this, SigninActivity.class));
+                startActivity(new Intent(SignupActivity.this, LoginActivity.class));
                 finish();
             }
         });
