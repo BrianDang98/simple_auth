@@ -1,2 +1,2 @@
 # simple_auth
-This is the seperate authenticated program using Firebase
+This is the separate authenticated program using Firebase
